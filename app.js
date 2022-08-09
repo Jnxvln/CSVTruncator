@@ -3,70 +3,10 @@ const csv = require('fast-csv');
 const { format } = require('@fast-csv/format');
 const prompt = require("prompt-sync")({ sigint: true });
 
-const filePath = './sample.csv'
 const records = []
 let inputFilePath = undefined
 let inputColumnName = undefined
 let inputMaxChars = undefined
-
-// STEP 5
-const formatToCsv = () => {
-
-    // Update filename to [path]_TRUNCATED.csv
-    const indexOfLastPeriod = inputFilePath.lastIndexOf('.')
-    const firstPath = inputFilePath.slice(0, indexOfLastPeriod)
-    const amendedFilePath = firstPath + '_TRUNCATED.csv'
-    console.log(`\nWriting to ${amendedFilePath}`)
-
-    // Write to file
-    const csvFile = fs.createWriteStream(amendedFilePath);
-    const stream = format({ headers:true });
-    stream.pipe(csvFile);
-    records.forEach(row => stream.write(row))
-    stream.end();
-    console.log(`\u001b[42m \u001b[37m \u001b[1m ${inputFilePath} processed successfully!`);
-    console.log('\u001b[0m Check your CSV file to ensure changes. Thank you for using my program!')
-}
-
-// STEP 4
-const processResults = () => {
-    console.log('\nPROCESSED RECORDS: ')
-    console.log(records)
-    console.log('')
-    console.log("Is this correct?", "\x1b[32m", "'Y' for yes and to continue saving to file,", "\x1b[31m", "'N' for no and abort the program.", "\x1b[0m")
-    const inputVerify = prompt()
-
-    if (inputVerify.toUpperCase() === 'Y') {
-        formatToCsv()
-    } else {
-        return -1
-    }
-}
-
-// STEP 3
-const truncateColumn = (row, columnName) => {
-    row[columnName] = row[columnName].slice(0, inputMaxChars)
-    records.push(row)
-}
-
-// STEP 2
-const beginProcessing = () => {
-    console.log(`\n\x1b[36mProcessing ${inputFilePath}...\u001b[0m`)
-    console.log('\x1b[41m', '\x1b[37m', 'Type Ctrl + C to abort this program at any time', '\x1b[0m', '\n')
-    if (!inputFilePath || inputFilePath.length <= 0) {
-        throw new Error('ERROR: inputFilePath (path to the CSV file) cannot be blank!')
-    }
-
-    if (!inputColumnName || inputColumnName.length <= 0) {
-        throw new Error('ERROR: inputColumnName (the column name to truncate) cannot be blank!')
-    }
-
-    fs.createReadStream(inputFilePath)
-    .pipe(csv.parse({ headers: true }))
-    .on('error', error => console.error(error))
-    .on('data', row => truncateColumn(row, inputColumnName))
-    .on('end', () => processResults());
-}
 
 // STEP 1
 const start = () => {
@@ -104,6 +44,66 @@ const start = () => {
     }
 }
 
-// == EXECUTION =======================================================================================================
+// STEP 2
+const beginProcessing = () => {
+    console.log(`\n\x1b[36mProcessing ${inputFilePath}...\u001b[0m`)
+    console.log('\x1b[41m', '\x1b[37m', 'Type Ctrl + C to abort this program at any time', '\x1b[0m', '\n')
+    if (!inputFilePath || inputFilePath.length <= 0) {
+        throw new Error('ERROR: inputFilePath (path to the CSV file) cannot be blank!')
+    }
 
-start()
+    if (!inputColumnName || inputColumnName.length <= 0) {
+        throw new Error('ERROR: inputColumnName (the column name to truncate) cannot be blank!')
+    }
+
+    fs.createReadStream(inputFilePath)
+    .pipe(csv.parse({ headers: true }))
+    .on('error', error => console.error(error))
+    .on('data', row => truncateColumn(row, inputColumnName))
+    .on('end', () => processResults());
+}
+
+// STEP 3
+const truncateColumn = (row, columnName) => {
+    row[columnName] = row[columnName].slice(0, inputMaxChars)
+    records.push(row)
+}
+
+// STEP 4
+const processResults = () => {
+    console.log('\nPROCESSED RECORDS: ')
+    console.log(records)
+    console.log('')
+    console.log("Is this correct?", "\x1b[32m", "'Y' for yes and to continue saving to file,", "\x1b[31m", "'N' for no and abort the program.", "\x1b[0m")
+    const inputVerify = prompt()
+
+    if (inputVerify.toUpperCase() === 'Y') {
+        formatToCsv()
+    } else {
+        return -1
+    }
+}
+
+// STEP 5
+const formatToCsv = () => {
+
+    // Update filename to [path]_TRUNCATED.csv
+    const indexOfLastPeriod = inputFilePath.lastIndexOf('.')
+    const firstPath = inputFilePath.slice(0, indexOfLastPeriod)
+    const amendedFilePath = firstPath + '_TRUNCATED.csv'
+    console.log(`\nWriting to ${amendedFilePath}`)
+
+    // Write to file
+    const csvFile = fs.createWriteStream(amendedFilePath);
+    const stream = format({ headers:true });
+    stream.pipe(csvFile);
+    records.forEach(row => stream.write(row))
+    stream.end();
+    console.log(`\u001b[42m \u001b[37m \u001b[1m ${inputFilePath} processed successfully!`);
+    console.log('\u001b[0m Check your CSV file to ensure changes. Thank you for using my program!')
+}
+
+
+// EXECUTION =======================================================================================================
+
+start()     // step 1
