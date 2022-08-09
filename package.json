@@ -1,0 +1,18 @@
+{
+  "name": "csvtruncator",
+  "version": "1.0.0",
+  "description": "Truncates a column of CSV data to a desired number of characters",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "csv",
+    "truncate",
+    "column"
+  ],
+  "author": "Justin Cox",
+  "license": "ISC"
+}
