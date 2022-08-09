@@ -14,5 +14,12 @@
     "column"
   ],
   "author": "Justin Cox",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  },
+  "dependencies": {
+    "fast-csv": "^4.3.6",
+    "prompt-sync": "^4.2.0"
+  }
 }
