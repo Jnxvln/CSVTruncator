@@ -27,7 +27,7 @@ const start = () => {
     console.log(color.Red + 'Type Ctrl + C to abort this program at any time' + color.Reset + '\n')
     console.log('Please enter the following information:\n')
 
-    // Gather filepath, column name, and max number of characters from user
+    // Gather filepath, header name, and max number of characters from user
     inputFilePath = prompt(`${color.Yellow}CSV File Path${color.Reset} (or drag & drop file here): ${color.Green}`)
     inputColumnName = prompt(`${color.Yellow}Column Name${color.Reset} to truncate (case-sensitive): ${color.Green}`)
     inputMaxChars = prompt(`${color.Yellow}Max Number of Characters${color.Reset} desired: ${color.Green}`)
