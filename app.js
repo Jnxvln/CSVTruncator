@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path')
 const csv = require('fast-csv');
 const { format } = require('@fast-csv/format');
 const Color = require('./utils/Color.js');
@@ -9,6 +10,8 @@ const color = new Color()
 let inputFilePath = undefined
 let inputColumnName = undefined
 let inputMaxChars = undefined
+let csvPathObject = undefined
+let csvFilePath = undefined
 
 // STEP 1 - Get info from user
 const start = () => {
@@ -32,11 +35,15 @@ const start = () => {
     inputColumnName = prompt(`${color.Yellow}Column Name${color.Reset} to truncate (case-sensitive): ${color.Green}`)
     inputMaxChars = prompt(`${color.Yellow}Max Number of Characters${color.Reset} desired: ${color.Green}`)
 
+    // Convert inputFilePath to an actual path
+    csvPathObject = path.parse(inputFilePath)
+    csvFilePath = path.resolve(csvPathObject.dir, csvPathObject.base)
+
     // Display verification prompt
     console.clear()
     console.log('+========================================================================+')
     console.log(color.Yellow + '\nPlease Verify:' + color.Reset + '\n')
-    console.log('CSV File Path: ' + color.Green + inputFilePath + color.Reset)
+    console.log('CSV File Path: ' + color.Green + csvFilePath + color.Reset)
     console.log('Truncate Column: ' + color.Green + inputColumnName + color.Reset)
     console.log('Max Characters: ' + color.Green + inputMaxChars + color.Reset + '\n')
 
@@ -53,7 +60,7 @@ const start = () => {
 
 // STEP 2 - (read in CSV from file)
 const beginProcessing = () => {
-    console.log(`${color.Yellow}Truncating ${color.White}${inputColumnName} column from ${color.Cyan}${inputFilePath}${color.Reset}...`)
+    console.log(`${color.Yellow}Truncating ${color.White}${inputColumnName} column from ${color.Cyan}${csvFilePath}${color.Reset}...`)
     console.log(color.Red + 'Type Ctrl + C to abort this program at any time'+color.Reset)
 
     if (!inputFilePath || inputFilePath.length <= 0) {
@@ -64,7 +71,7 @@ const beginProcessing = () => {
         throw new Error('ERROR: inputColumnName (the column name to truncate) cannot be blank!')
     }
 
-    fs.createReadStream(inputFilePath)
+    fs.createReadStream(csvFilePath)
     .pipe(csv.parse({ headers: true }))
     .on('error', error => console.error(error))
     .on('data', row => truncateColumn(row, inputColumnName))    // step 3
@@ -97,20 +104,22 @@ const formatToCsv = () => {
 
     console.clear()
     // Configure new path for saving (to avoid saving the source file)
-    const fileExtensionPeriod = inputFilePath.lastIndexOf('.')
-    const filename = inputFilePath.slice(0, fileExtensionPeriod)
-    const amendedFilePath = filename + '_TRUNCATED.csv'
-    console.log(`\n${color.Reset}Saving to ${color.Yellow}${amendedFilePath} ${color.Reset}\n`)
+    // const fileExtensionPeriod = inputFilePath.lastIndexOf('.')
+    // const filename = inputFilePath.slice(0, fileExtensionPeriod)
+    // const saveFilePath = filename + '_TRUNCATED.csv'
+    const saveFilePath = path.join(csvPathObject.dir, csvPathObject.name + '_TRUNC' + csvPathObject.ext)
+    console.log(`\n${color.Reset}Saving to ${color.Yellow}${saveFilePath} ${color.Reset}\n`)
 
     // Create file stream and write changes to file
-    const csvFile = fs.createWriteStream(amendedFilePath);
+    const csvFile = fs.createWriteStream(saveFilePath);
     const stream = format({ headers:true });
     stream.pipe(csvFile);
     records.forEach(row => stream.write(row))
     stream.end();
 
     console.log(color.Green + color.Bold + inputFilePath + ' finished processing successfully' + color.Reset)
-    console.log('Thank you for using CSVTruncator!')
+    console.log('Thank you for using CSVTruncator!' + color.Reset)
+    const exitKey = prompt('Press [ENTER] to exit...')
 }
 
 
