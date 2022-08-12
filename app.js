@@ -11,11 +11,24 @@ let inputColumnName = undefined
 let inputMaxChars = undefined
 let csvPathObject = undefined
 let csvFilePath = undefined
+let setupVerified = undefined
+let continueMessage = `${color.Magenta}Press [ENTER] to continue...`
 
-// STEP 1 - Get info from user
-const start = () => {
+// #region UTILITY FUNCTIONS
+const resetVariables = () => {
+    inputColumnName = undefined
+    inputMaxChars = undefined
+    csvPathObject = undefined
+    csvFilePath = undefined
+    setupVerified = undefined
+}
 
-    // Display Prompt
+const promptToContinue = () => {
+    prompt(continueMessage)
+}
+
+const printGreeting = () => {
+    // Display greeting
     console.clear()
     console.log(color.Cyan)
     console.log('+========================================================================+')
@@ -28,153 +41,76 @@ const start = () => {
     console.log('+========================================================================+')
     console.log(color.Red + 'Type Ctrl + C to abort this program at any time' + color.Reset + '\n')
     console.log('Please enter the following information:\n')
+}
 
-    // ===================================================================================================================================================================
+const askFilePath = () => {
+    let filePath = undefined
 
-    // Gather filepath, header name, and max number of characters from user
-    
-    // Input: CSV File Path
-    let enteredPath = undefined
-    let fileExists = undefined
-    let isCSVFile = undefined
-
-    // do {
-    //     console.log(`${color.Yellow}CSV File Path${color.Reset} (or drag & drop file here): ${color.Green}`)
-    //     csvFilePath = prompt('> ')
-
-    //     if (!csvFilePath || csvFilePath === '' || csvFilePath === undefined || csvFilePath === null) {
-    //         enteredPath = false
-
-    //         console.log(`fileExists: ${fileExists}`)
-    //         console.log(`enteredPath: ${enteredPath}`)
-    //         console.log(`isCSVFile: ${isCSVFile}`)
-
-    //         console.error(`${color.Red}ERROR: You must provide a file path to your CSV file. Please try again`)
-    //     } else {
-    //         enteredPath = true
-
-    //         // Check if file exists
-    //         console.log('')
-    //         csvFilePath = path.resolve(csvFilePath)
-    //         csvPathObject = path.parse(csvFilePath) // Create a path object (used during step #5 formatToCsv)
-
-    //         if (!fs.existsSync(csvFilePath)) {
-    //             fileExists = false
-
-    //             console.log(`fileExists: ${fileExists}`)
-    //             console.log(`enteredPath: ${enteredPath}`)
-    //             console.log(`isCSVFile: ${isCSVFile}`)
-
-    //             console.error(`${color.Red}ERROR: File does not exist at path: ${csvFilePath}.${color.Reset} Please try again`)
-    //         } else {
-    //             fileExists = true
-    //             if (csvPathObject.ext !== '.csv') {
-    //                 isCSVFile = false
-
-    //                 console.log(`fileExists: ${fileExists}`)
-    //                 console.log(`enteredPath: ${enteredPath}`)
-    //                 console.log(`isCSVFile: ${isCSVFile}`)
-
-    //                 console.error(`${color.Red}ERROR: This program only works with CSV files, ending in .csv - Please double check your file and try again ${color.Reset}`)
-    //             }
-    //         }
-    //     }
-    // } while (!enteredPath || !fileExists || !isCSVFile)
-
-    
-
-    // CHECK IF PATH ENTERED
     do {
         console.log(`${color.Yellow}CSV File Path${color.Reset} (or drag & drop file here): ${color.Green}`)
-        csvFilePath = prompt('> ')
+        filePath = prompt('> ')
+        filePath = filePath.replace(/['"]+/g, '')     // strip single-quotes and double-quotes
 
-        csvFilePath = csvFilePath.replace(/['"]+/g, '')
-
-        console.log('\n\nFILE PATH: ' + csvFilePath + '\n\n')
-
-        if (!csvFilePath || csvFilePath === '' || csvFilePath === undefined || csvFilePath === null) {
-            enteredPath = false
-
-            console.log(`fileExists: ${fileExists}`)
-            console.log(`enteredPath: ${enteredPath}`)
-            console.log(`isCSVFile: ${isCSVFile}`)
-
-            console.error(`${color.Red}ERROR: You must provide a file path to your CSV file. Please try again`)
-        } else {
-            enteredPath = true
+        if (!filePath) {
+            // Nothing was entered (error)
+            console.error(`${color.Red}ERROR: You must provide a CSV file path. ${color.Magenta}Please try again`)
         }
-    } while (!enteredPath)
+    } while (!filePath)
 
+    csvFilePath = filePath
+    // return filePath
+}
 
-
-    // CHECK IF FILE EXISTS
-    if (!fs.existsSync(csvFilePath)) {
-
-        console.log(`fileExists: ${fileExists}`)
-        console.log(`enteredPath: ${enteredPath}`)
-        console.log(`isCSVFile: ${isCSVFile}`)
-
-        console.error(`${color.Red}ERROR: File does not exist at path: ${csvFilePath}.${color.Reset} Please try again`)
-        fileExists = undefined
-    } else {
-        fileExists = true
-        console.log('')
-        csvFilePath = path.resolve(csvFilePath)
-        csvPathObject = path.parse(csvFilePath) // Create a path object (used during step #5 formatToCsv)
+const isFile = (filepath) => {
+    // Check if file exists
+    if (!fs.existsSync(filepath)) {
+        console.error(`${color.Red}ERROR: The following file could not be found: ${filepath}.${color.Magenta}\n\nCheck filename and try again`)
+        promptToContinue()
+        return false
     }
+    return true
+}
 
-
-    // CHECK IF FILE IS A CSV FILE
-    if (fileExists) {
-        if (csvPathObject.ext !== '.csv') {
-            isCSVFile = false
-
-            console.log(`fileExists: ${fileExists}`)
-            console.log(`enteredPath: ${enteredPath}`)
-            console.log(`isCSVFile: ${isCSVFile}`)
-
-            console.error(`${color.Red}ERROR: This program only works with CSV files, ending in .csv - Please double check your file and try again ${color.Reset}`)
-            prompt('Press [ENTER] to continue...')
-            start()
-        } else {
-            isCSVFile = true
-        }
+const isFileCSV = (filepath) => {
+    // Check if file is a CSV file
+    if (csvPathObject.ext !== '.csv') {
+        // console.error(`${color.Red}ERROR: This program only works with CSV files, ending in .csv - Please check your file extension and try again ${color.Reset}`)
+        // promptToContinue()
+        return false
     }
-    
+    return true
+}
 
-
-
-
-
-
-
-
-
-
-
-
-    // console.log('')
-    // csvFilePath = path.resolve(csvFilePath)
-    // csvPathObject = path.parse(csvFilePath) // Create a path object (used during step #5 formatToCsv)
-
-    // // Check if file exists
-    // if (!fs.existsSync(csvFilePath)) {
-    //     console.log(`ERROR: File does not exist at path: ${csvFilePath}`)
-    // }
-
+const askColumnName = () => {
     // Input: Column Name
+    let columnName = undefined
     do {
-        inputColumnName = prompt(`${color.Yellow}Column Name${color.Reset} to truncate (case-sensitive): ${color.Green}`)
-    } while (inputColumnName === '' || inputColumnName === undefined || inputColumnName === null)
+        columnName = prompt(`${color.Yellow}Column Name${color.Reset} to truncate (case-sensitive): ${color.Green}`)
+    } while (!columnName)
 
-    // Input: MaxChars
+    return columnName
+}
+
+const setMaxChars = () => {
+    let maxChars = undefined
     do {
-        inputMaxChars = prompt(`${color.Yellow}Max Number of Characters${color.Reset} desired: ${color.Green}`)
-    } while (parseInt(inputMaxChars) < 0 || inputMaxChars === '' || inputMaxChars === undefined || inputMaxChars === null)
+        maxChars = prompt(`${color.Yellow}Max Number of Characters${color.Reset} desired: ${color.Green}`)
+    } while (!maxChars || parseInt(maxChars) < 0)
 
+    inputMaxChars = maxChars
+    return maxChars
+}
+
+const setFilePath = () => {
+    askFilePath()
+    csvFilePath = path.resolve(csvFilePath)
+    csvPathObject = path.parse(csvFilePath)         // Create path object (used during step #5 formatToCsv)
+}
+
+const setupIsVerified = () => {
     // Display verification prompt
     console.clear()
-    console.log('+========================================================================+')
+    console.log(color.Green + '+========================================================================+')
     console.log(color.Yellow + '\nPlease Verify:' + color.Reset + '\n')
     console.log('CSV File Path: ' + color.Green + csvFilePath + color.Reset)
     console.log('Truncate Column: ' + color.Green + inputColumnName + color.Reset)
@@ -185,9 +121,12 @@ const start = () => {
         inputVerify = prompt(`${color.Reset}Is this correct? Type ${color.Green}'Y' for yes, ${color.Red}'N' for no: ${color.Yellow}`)
     } while (inputVerify === '' || inputVerify === undefined || inputVerify === null)
 
+
+    console.log(color.Reset)
+
     if (inputVerify.toUpperCase() === 'Y') {
         console.clear()
-        beginProcessing()       // step 2
+        return true
     } else {
         console.clear()
         inputFilePath = undefined
@@ -195,8 +134,77 @@ const start = () => {
         inputMaxChars = undefined
         csvPathObject = undefined
         csvFilePath = undefined
-        start()
+        return false
     }
+}
+// #endregion
+
+
+
+
+
+// STEP 1 - Get info from user
+const start = () => {
+
+    printGreeting()
+
+    // #1: Set the CSV file path
+    setFilePath()
+
+
+    // #2: Check if it's a file
+    const fileExists = isFile(csvFilePath)
+    if (!fileExists) {
+        console.error(`File not found at ${csvFilePath}`)
+        promptToContinue()
+        resetVariables()
+        start()
+        // throw new Error(`File not found at ${csvFilePath}`)
+    }
+
+    // #3: Check if it has CSV file extension (.csv)
+    const isCSVFile = isFileCSV(csvFilePath)
+    if (!isCSVFile) {
+        console.error(`${color.Red}ERROR: File type must be .csv${color.Reset}`)
+        promptToContinue()
+        resetVariables()
+        start()
+        // throw new Error(`File type must be .csv`)
+    }
+
+    // #4: Ask for column name to truncate
+    inputColumnName = askColumnName()
+    if (!inputColumnName) {
+        console.error('Missing column name. You must provide the header name of the column you wish to truncate')
+        promptToContinue()
+        resetVariables()
+        start()
+        // throw new Error('Missing column name. You must provide the header name of the column you wish to truncate')
+    }
+
+    // #5: Input: MaxChars
+    inputMaxChars = setMaxChars()
+    if (!inputMaxChars) {
+        console.error('You must enter the max number of visible characters')
+        promptToContinue()
+        resetVariables()
+        start()
+        throw new Error('You must enter the max number of visible characters')
+    }
+
+
+    // #6: Display verification prompt
+    setupVerified = setupIsVerified()
+    if (!setupVerified) {
+        console.error('Setup was not verified')
+        promptToContinue()
+        resetVariables()
+        start()
+        // throw new Error('Setup was not verified')
+    }
+
+    // MOVE ON TO PROCESSING! (STEP #2)
+    beginProcessing()
 }
 
 // STEP 2 - (read in CSV from file)
@@ -212,16 +220,30 @@ const beginProcessing = () => {
     console.log(`${color.Yellow}Truncating ${color.White}${inputColumnName} column from ${color.Cyan}${csvFilePath}${color.Reset}...`)
     console.log(color.Red + 'Type Ctrl + C to abort this program at any time'+color.Reset)
 
-    fs.createReadStream(csvFilePath)
-    .pipe(csv.parse({ headers: true }))
-    .on('error', error => console.error(error))
-    .on('data', row => truncateColumn(row, inputColumnName))    // step 3
-    .on('end', () => processResults());                         // step 4
+    try {        
+        fs.createReadStream(csvFilePath)
+        .pipe(csv.parse({ headers: true }))
+        .on('error', error => console.error(error))
+        .on('data', row => truncateColumn(row, inputColumnName))    // step 3
+        .on('end', () => {
+            console.log('------- FINISHED PROCESSING -------------')
+            processResults()
+        });                         // step 4
+    } catch (error) {
+        console.error(`${color.Red}${error}${color.Reset}`)
+    }
 }
 
 // STEP 3 - Truncate the desired column
 const truncateColumn = (row, columnName) => {
-    row[columnName] = row[columnName].slice(0, inputMaxChars)
+    if (row[columnName]) {
+        row[columnName] = row[columnName].slice(0, inputMaxChars)
+    } else {
+        console.error(`${color.Red}ERROR: The column header named "${columnName}" does not exist${color.Reset}`)
+        promptToContinue()
+        resetVariables()
+        start()
+    }
     records.push(row)
 }
 
@@ -262,6 +284,7 @@ const formatToCsv = () => {
     console.log(color.Green + color.Bold + csvFilePath + ' finished processing successfully' + color.Reset)
     console.log('Thank you for using CSVTruncator!' + color.Reset)
     prompt('Press [ENTER] to exit...')
+    process.exit(1)
 }
 
 
